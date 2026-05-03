@@ -1,0 +1,43 @@
+fastapi
+uvicorn[standard]
+pymongo
+python-dotenv
+pydantic
+pydantic[email]
+python-multipart
+google.generativeai # --> google-genai (new package name as of June 2024)
+google-genai
+python-docx
+PyPDF2
+Pillow
+# kafka-python
+
+# OpenCV — headless only (no GUI/Qt libs); safe for server environments.
+opencv-python-headless
+
+#Insightface dependencies
+scikit-learn
+insightface 
+onnxruntime
+
+# Tesseract OCR dependencies
+# pytesseract
+
+# EasyOCR dependencies
+# easyocr
+# torch 
+# torchvision
+# opencv-python-headless
+
+# UniFace dependencies
+# uniface
+
+# deepface runtime requirements (excluding opencv — handled above).
+# deepface itself is installed separately in the Dockerfile with --no-deps
+# to prevent it pulling in opencv-python (full) which conflicts with headless.
+# tf-keras
+# tensorflow
+# mtcnn
+# retina-face
+# gdown
+# tqdm

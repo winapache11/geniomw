@@ -1,0 +1,89 @@
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - kafka-net
+  kafka:
+    image: confluentinc/cp-kafka:7.3.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+      # Two listeners: one for internal Docker services, one for host access
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - kafka-net
+  api:
+    build: .
+    ports:
+      - "8118:8118"
+    env_file:
+      - .env
+    volumes:
+      - ../genioui/assets/uploads/subscription:/assets/uploads/subscription
+      - ./assets/models:/root/.insightface/models
+    depends_on:
+      - kafka
+    networks:
+      - kafka-net
+
+  kafka-payslip-consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile.consumer
+    command: ["python", "kafka_payslip_consumer.py"]
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_PAYSLIP_TOPIC: payslip_extracted
+      API_BASE_URL: http://api:8118/api
+      API_KEY: ${API_KEY}
+    depends_on:
+      kafka:
+        condition: service_healthy 
+      api:
+        condition: service_started
+    restart: on-failure
+    networks:
+      - kafka-net
+  kafka-feature-consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile.consumer
+    command: ["python", "kafka_feature_consumer.py"]
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_FEATURE_TOPIC: kyc.completed
+      API_BASE_URL: http://api:8118/api
+      API_KEY: ${API_KEY}
+    depends_on:
+      kafka:
+        condition: service_healthy 
+      api:
+        condition: service_started
+    restart: on-failure
+    networks:
+      - kafka-net
+networks:
+  kafka-net:
+    driver: bridge
