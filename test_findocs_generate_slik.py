@@ -1,22 +1,23 @@
-# test_kafka_feature_consumer.py
-
 import json
 import os
 import time
 from kafka import KafkaProducer
 from kafka.errors import NoBrokersAvailable
 
-KAFKA_BOOTSTRAP_SERVERS = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:29092')  # host port
-KAFKA_TOPIC = os.getenv('KAFKA_FEATURE_TOPIC', 'kyc.completed')
+KAFKA_BOOTSTRAP_SERVERS = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:29092')
+KAFKA_TOPIC = os.getenv('KAFKA_FINDOC_GENERATE_TOPIC', 'findoc_generate')
 
-# Test payload — swap aisubscription_id and tenant_id as needed
 TEST_PAYLOAD = {
+    "tenant_id": "tnt20261111001",
     "aisubscription_id": "SUB2026111100085",
-    "tenant_id": "tnt20261111001"
+    "document_type": "slik",
+    "num_records": 5,
+    "num_months": 3,
+    "risk": "medium_low",
 }
 
 
-def send_test_message():
+def send_test_message(payload: dict = TEST_PAYLOAD):
     max_retries = 5
     retry_delay = 3
 
@@ -34,12 +35,12 @@ def send_test_message():
                 raise
             time.sleep(retry_delay)
 
-    producer.send(KAFKA_TOPIC, value=TEST_PAYLOAD)
+    producer.send(KAFKA_TOPIC, value=payload)
     producer.flush()
     producer.close()
 
-    print(f"✅ [test_kafka_feature] Message sent to topic '{KAFKA_TOPIC}':")
-    print(json.dumps(TEST_PAYLOAD, indent=2))
+    print(f"✅ [test_findocs_generate] Message sent to topic '{KAFKA_TOPIC}':")
+    print(json.dumps(payload, indent=2))
 
 
 if __name__ == "__main__":

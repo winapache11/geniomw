@@ -43,14 +43,14 @@ services:
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KAFKA_PAYSLIP_TOPIC: payslip_extracted
-      API_BASE_URL: http://host.docker.internal:8118/api
+      API_BASE_URL: http://api:8118/api
       API_KEY: ${API_KEY}
     depends_on:
       kafka:
-        condition: service_healthy
+        condition: service_healthy 
+      api:
+        condition: service_started
     restart: on-failure
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     networks:
       - kafka-net
   kafka-feature-consumer:
@@ -61,14 +61,14 @@ services:
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KAFKA_FEATURE_TOPIC: kyc.completed
-      API_BASE_URL: http://host.docker.internal:8118/api
+      API_BASE_URL: http://api:8118/api
       API_KEY: ${API_KEY}
     depends_on:
       kafka:
-        condition: service_healthy
+        condition: service_healthy 
+      api:
+        condition: service_started
     restart: on-failure
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     networks:
       - kafka-net
   findocs-generate-consumer:
@@ -78,15 +78,15 @@ services:
     command: ["python", "findocs_generate_consumer.py"]
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      KAFKA_FINDOC_GENERATE_TOPIC: findoc_generate
-      API_BASE_URL: http://host.docker.internal:8118/api
+      KAFKA_FIN_DOCS_TOPIC: findoc-generate
+      API_BASE_URL: http://api:8118/api
       API_KEY: ${API_KEY}
     depends_on:
       kafka:
-        condition: service_healthy
-    restart: on-failure
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+        condition: service_healthy 
+      api:
+        condition: service_started
+    restart: on-failure 
     networks:
       - kafka-net
 networks:

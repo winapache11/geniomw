@@ -10,5 +10,6 @@ RUN pip install --no-cache-dir kafka-python requests python-dotenv
 
 COPY kafka_payslip_consumer.py .
 COPY kafka_feature_consumer.py .
+COPY findocs_generate_consumer.py .
 
-# CMD ["python", "kafka_payslip_consumer.py", "kafka_feature_consumer.py"]
+# CMD ["python", "kafka_payslip_consumer.py", "kafka_feature_consumer.py", "findocs_generate_consumer.py"]

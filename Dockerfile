@@ -5,13 +5,6 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Install system dependencies required for building insightface and other compiled packages
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    g++ \
-    python3-dev \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
 
 COPY requirements.txt .
 # Install all Python dependencies
@@ -21,7 +14,7 @@ RUN pip install -r requirements.txt   # cached until requirements.txt changes
 # Install system dependencies for insightface
 # RUN pip install insightface onnxruntime numpy
 
-COPY ./app ./app
+# COPY ./app ./app
 COPY .env .
 
 EXPOSE 8118
