@@ -11,7 +11,7 @@ load_dotenv()
 
 # Configuration
 KAFKA_BOOTSTRAP_SERVERS = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'kafka:9092')
-KAFKA_TOPIC = os.getenv('KAFKA_FINDOC_GENERATE_TOPIC', 'findoc_generate')
+KAFKA_TOPIC = os.getenv('KAFKA_FINDOC_GENERATE_TOPIC', 'findoc-generate')
 API_BASE_URL = os.getenv('API_BASE_URL', 'http://api:8118/api')
 ENDPOINT = f"{API_BASE_URL}/financialdocuments/generate"
 API_KEY = os.getenv('API_KEY', 'your-api-key')
@@ -28,6 +28,7 @@ def process_message(msg_value: dict):
         num_records = int(msg_value.get('num_records', 3))
         num_months = int(msg_value.get('num_months', 3))
         risk = msg_value.get('risk', 'medium')
+        debtor_name = msg_value.get('debtor_name')
 
         data = {
             'tenant_id': tenant_id,
@@ -37,13 +38,15 @@ def process_message(msg_value: dict):
             'num_months': num_months,
             'risk': risk,
         }
+        if debtor_name:
+            data['debtor_name'] = debtor_name
 
         headers = {'X-API-Key': API_KEY}
 
         logger.info(f"Sending to {ENDPOINT} for {aisubscription_id} (type={document_type})")
         resp = requests.post(ENDPOINT, data=data, headers=headers)
 
-        if resp.status_code == 201:
+        if resp.status_code in (200, 201):
             logger.info(f"Success: {resp.json()}")
         else:
             logger.error(f"Failed ({resp.status_code}): {resp.text}")
